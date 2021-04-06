@@ -5,32 +5,32 @@
 			<view :style="{height: statusBarHeight + 'px'}"></view>
 			<!-- 导航栏内容 -->
 			<!-- 搜索页里 -->
-			<view @click="open" 
+			<view  
 			class="navbar__content" 
 			:style="{height: navBarHeight + 'px', width: windowWidth + 'px'}"
-			v-if="InisSearch === true"
+			v-if="isSearch"
 			>
-				<view class="navbar__content__icons" @click="open">
+				<view class="navbar__content__icons" @click="back">
 					<uni-icons type="back" size="22" color="#fff"></uni-icons>
 				</view>
-				<view class="navbar__serach" :class="{navbar__content__serach: InisSearch}">
+				<view class="navbar__serach" :class="{navbar__content__serach: isSearch}">
 					<view class="navbar__serach__icon">
 						<uni-icons type="search" size="20"></uni-icons>
 					</view>
-					<view class="navbar__serach__text">true1</view>
+					<input class="navbar__serach__text" placeholder="请输入搜索内容" v-model="inputValue" type="text" @input="inputChange" @keydown.enter="handleEnter"></input>
 				</view>
-			</view>
+			</view> 
 			<!-- 非搜索页 -->
-			<view @click.stop="open"
+			<view @click="open"
 			class="navbar__content" 
 			:style="{height: navBarHeight + 'px', width: windowWidth + 'px'}"
 			v-else
 			>
-				<view class="navbar__serach" :class="{navbar__content__serach: InisSearch}">
+				<view class="navbar__serach" :class="{navbar__content__serach: isSearch}">
 					<view class="navbar__serach__icon">
 						<uni-icons type="search" size="20" ></uni-icons>
 					</view>
-					<view class="navbar__serach__text">false2</view>
+					<input class="navbar__serach__text" placeholder="uni-app,vue" ></input>
 				</view>
 			</view>
 		</view>
@@ -42,20 +42,19 @@
 	export default {
 		name:"navbar",
 		props: {
-			isSearch: ''
+			isSearch: {
+				default: false,
+				type: Boolean
+			}
 		},
 		data() {
 			return {
 				statusBarHeight: 20,
 				navBarHeight: 45,
 				windowWidth: 375,
-				InisSearch: false
+				inputValue: '',
+				allValue: []
 			};
-		},
-		watch: {
-			isSearch(val) {
-				this.InisSearch = val
-			}
 		},
 		created() {
 			// 获取系统信息
@@ -71,28 +70,48 @@
 			this.navBarHeight = (menuButtonInfo.bottom - this.statusBarHeight) + (menuButtonInfo.top - this.statusBarHeight)
 			this.windowWidth = menuButtonInfo.left
 			// #endif
+			this.into()
 		},
 		methods: {
 			open() {
-				if(this.InisSearch === true) {
-
-					this.InisSearch = false
-				}else {
-					
 					uni.navigateTo({
 						url:'/pages/home-search/home-search'
 					})
-					this.InisSearch = true
-				}
+				},
+				back() {
+					uni.navigateBack({
+						delta: 999
+					})
+				},
+				inputChange(e) {
+					this.inputValue = e.detail.value
+				},
+				handleEnter() {
+					this.allValue.splice(this.allValue.length, 0, this.inputValue)
+					uni.setStorage({
+						key: 'storage_key',
+						data: this.allValue
+					})
+					this.$emit('handlerEnter', this.allValue)
+					// uni.getStorage({
+					//     key: 'storage_key',
+					//     success: function (res) {
+								
+					//     }
+					// });
+				},
+				clear() {
+					this.allValue = []
+				},
+				into() {
+					uni.getStorage({
+					    key: 'storage_key',
+					    success: function (res) {
+								this.allValue = res.data
+					    }
+					});
+				},
 			},
-			back() {
-				uni.navigateTo({
-					url:'/pages/tabbar/index/index'
-				})
-				console.log('back')
-			}
-		}
-		
 	}
 </script>
 
